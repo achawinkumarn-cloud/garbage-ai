@@ -4,20 +4,9 @@
 <meta charset="UTF-8">
 <title>AI แยกขยะ</title>
 
-<!-- จำเป็นมาก -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-
-<style>
-body {
-    text-align: center;
-    font-family: sans-serif;
-}
-button {
-    font-size: 20px;
-    padding: 10px;
-}
-</style>
+<!-- โหลด lib -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
 </head>
 
@@ -26,43 +15,49 @@ button {
 <h1>🤖 AI แยกขยะ</h1>
 <button onclick="start()">📷 เปิดกล้อง</button>
 
-<br><br>
-
 <div id="webcam-container"></div>
 <div id="label-container"></div>
 
 <script>
 
-// 🔥 ใช้ลิงก์ของคุณ
 const URL = "https://teachablemachine.withgoogle.com/models/3EFdknX8t/";
 
-// ตัวแปร
 let model, webcam, labelContainer, maxPredictions;
 
-// กดปุ่ม
 async function start() {
+
+    // 🔥 เช็คก่อนว่าโหลด lib มาไหม
+    if (typeof tmImage === "undefined") {
+        alert("❌ โหลด AI ไม่สำเร็จ (tmImage ไม่มี)");
+        return;
+    }
+
     try {
         await init();
     } catch (e) {
-        alert("❌ Error: " + e.message);
+        alert("❌ เปิดกล้องไม่ได้: " + e.message);
         console.log(e);
     }
 }
 
-// โหลดโมเดล + เปิดกล้อง
 async function init() {
 
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
 
-    // โหลด AI
+    // โหลดโมเดล
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // เปิดกล้อง
+    // 🔥 สร้าง webcam ก่อนใช้
     webcam = new tmImage.Webcam(250, 250, true);
 
-    // 🔥 สำคัญมาก (มือถือ)
+    if (!webcam) {
+        alert("❌ สร้างกล้องไม่สำเร็จ");
+        return;
+    }
+
+    // 🔥 มือถือใช้ environment
     await webcam.setup({ facingMode: "environment" });
 
     await webcam.play();
@@ -83,14 +78,12 @@ async function init() {
     }
 }
 
-// loop
 async function loop() {
     webcam.update();
     await predict();
     window.requestAnimationFrame(loop);
 }
 
-// ทำนายผล
 async function predict() {
 
     const prediction = await model.predict(webcam.canvas);
