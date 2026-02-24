@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <title>AI แยกขยะ</title>
+
+<!-- โหลด AI -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
 </head>
+
 <body>
 
 <h1>🤖 AI แยกขยะ</h1>
@@ -17,26 +23,9 @@ const URL = "https://teachablemachine.withgoogle.com/models/d65jgZU5K/";
 
 let model, webcam, labelContainer, maxPredictions;
 
-// 🔥 โหลด script ก่อน
-function loadScript(src) {
-    return new Promise(resolve => {
-        const script = document.createElement("script");
-        script.src = src;
-        script.onload = resolve;
-        document.body.appendChild(script);
-    });
-}
-
 async function start() {
     try {
-        // โหลด AI ก่อน
-        if (typeof tmImage === "undefined") {
-            await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest");
-            await loadScript("https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest");
-        }
-
-        init();
-
+        await init();
     } catch (e) {
         alert("โหลด AI ไม่สำเร็จ: " + e.message);
     }
