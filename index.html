@@ -25,7 +25,15 @@ let model, webcam, labelContainer, maxPredictions;
 
 async function start() {
     try {
+
+        // 🔥 เช็คว่ามี tmImage จริงไหม
+        if (typeof tmImage === "undefined") {
+            alert("❌ โหลด AI ไม่สำเร็จ (tmImage ไม่มี)");
+            return;
+        }
+
         await init();
+
     } catch (e) {
         alert("โหลด AI ไม่สำเร็จ: " + e.message);
     }
@@ -41,7 +49,7 @@ async function init() {
 
         webcam = new tmImage.Webcam(200, 200, true);
 
-        await webcam.setup();
+        await webcam.setup();   // ขอสิทธิ์กล้อง
         await webcam.play();
 
         window.requestAnimationFrame(loop);
