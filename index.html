@@ -1,90 +1,81 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>AI แยกขยะ</title>
-
-<!-- โหลด AI -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-
+  <meta charset="UTF-8">
+  <title>Garbage AI</title>
 </head>
-
 <body>
 
-<h1>🤖 AI แยกขยะ</h1>
-<button onclick="start()">📷 เปิดกล้อง</button>
+  <h2>AI แยกขยะ</h2>
+  <button onclick="init()">เปิดกล้อง</button>
 
-<div id="webcam-container"></div>
-<div id="label-container"></div>
+  <br><br>
 
-<script>
-const URL = "https://teachablemachine.withgoogle.com/models/d65jgZU5K/";
+  <!-- กล้อง -->
+  <video id="video" width="300" height="300" autoplay playsinline></video>
 
-let model, webcam, labelContainer, maxPredictions;
+  <!-- canvas ซ่อนไว้ -->
+  <canvas id="canvas" width="300" height="300" style="display:none;"></canvas>
 
-async function start() {
-    try {
+  <!-- แสดงผล -->
+  <div id="label-container"></div>
 
-        // 🔥 เช็คว่ามี tmImage จริงไหม
-        if (typeof tmImage === "undefined") {
-            alert("❌ โหลด AI ไม่สำเร็จ (tmImage ไม่มี)");
-            return;
-        }
+  <!-- โหลด Teachable Machine -->
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
-        await init();
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/3EFdknX8t/"; 
+    // 🔴 ใส่ลิงก์โมเดลของคุณตรงนี้
 
-    } catch (e) {
-        alert("โหลด AI ไม่สำเร็จ: " + e.message);
+    let model, maxPredictions;
+    let video, canvas, ctx, labelContainer;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      // โหลดโมเดล
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      video = document.getElementById("video");
+      canvas = document.getElementById("canvas");
+      ctx = canvas.getContext("2d");
+
+      // 🔥 เปิดกล้อง (ใช้ได้ทุกเครื่อง รวม iPhone)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false
+      });
+
+      video.srcObject = stream;
+
+      labelContainer = document.getElementById("label-container");
+      labelContainer.innerHTML = "";
+
+      for (let i = 0; i < maxPredictions; i++) {
+        labelContainer.appendChild(document.createElement("div"));
+      }
+
+      loop();
     }
-}
 
-async function init() {
-    try {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-
-        webcam = new tmImage.Webcam(200, 200, true);
-
-        await webcam.setup();   // ขอสิทธิ์กล้อง
-        await webcam.play();
-
-        window.requestAnimationFrame(loop);
-
-        document.getElementById("webcam-container").innerHTML = "";
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-        labelContainer = document.getElementById("label-container");
-        labelContainer.innerHTML = "";
-
-        for (let i = 0; i < maxPredictions; i++) {
-            labelContainer.appendChild(document.createElement("div"));
-        }
-
-    } catch (error) {
-        alert("❌ เปิดกล้องไม่ได้: " + error.message);
+    async function loop() {
+      ctx.drawImage(video, 0, 0, 300, 300);
+      await predict();
+      requestAnimationFrame(loop);
     }
-}
 
-async function loop() {
-    webcam.update();
-    await predict();
-    window.requestAnimationFrame(loop);
-}
+    async function predict() {
+      const prediction = await model.predict(canvas);
 
-async function predict() {
-    const prediction = await model.predict(webcam.canvas);
-
-    for (let i = 0; i < maxPredictions; i++) {
+      for (let i = 0; i < maxPredictions; i++) {
         labelContainer.childNodes[i].innerHTML =
-            prediction[i].className + ": " +
-            prediction[i].probability.toFixed(2);
+          prediction[i].className + ": " +
+          prediction[i].probability.toFixed(2);
+      }
     }
-}
-</script>
+  </script>
 
 </body>
 </html>
