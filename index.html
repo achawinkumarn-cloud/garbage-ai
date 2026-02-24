@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>AI แยกขยะ</title>
+    <meta charset="UTF-8">
+    <title>AI แยกขยะ</title>
 </head>
 <body>
 
 <h1>🤖 AI แยกขยะ</h1>
-<button onclick="init()">เปิดกล้อง</button>
+<button onclick="init()">📷 เปิดกล้อง</button>
 
 <div id="webcam-container"></div>
 <div id="label-container"></div>
@@ -25,17 +25,21 @@ async function init() {
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
 
+        // โหลดโมเดล
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
 
-        webcam = new tmImage.Webcam(300, 300, true);
-        await webcam.setup(); 
+        // เปิดกล้อง
+        webcam = new tmImage.Webcam(200, 200, true);
+
+        await webcam.setup();   // ขอ permission กล้อง
         await webcam.play();
+
         window.requestAnimationFrame(loop);
 
-        document.getElementById("webcam-container").innerHTML = "";
         document.getElementById("webcam-container").appendChild(webcam.canvas);
 
+        // เตรียมช่องแสดงผล
         labelContainer = document.getElementById("label-container");
         labelContainer.innerHTML = "";
 
@@ -45,7 +49,6 @@ async function init() {
 
     } catch (error) {
         alert("❌ เปิดกล้องไม่ได้: " + error.message);
-        console.log(error);
     }
 }
 
@@ -59,8 +62,9 @@ async function predict() {
     const prediction = await model.predict(webcam.canvas);
 
     for (let i = 0; i < maxPredictions; i++) {
-        const result = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-        labelContainer.childNodes[i].innerHTML = result;
+        const classPrediction =
+            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        labelContainer.childNodes[i].innerHTML = classPrediction;
     }
 }
 </script>
