@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <title>AI แยกขยะ</title>
+  <meta charset="UTF-8">
+  <title>AI แยกขยะ</title>
 </head>
 <body>
 
@@ -29,11 +29,8 @@ async function init() {
         maxPredictions = model.getTotalClasses();
 
         webcam = new tmImage.Webcam(300, 300, true);
-
-        // ขอสิทธิ์กล้อง
-        await webcam.setup();
+        await webcam.setup(); 
         await webcam.play();
-
         window.requestAnimationFrame(loop);
 
         document.getElementById("webcam-container").innerHTML = "";
@@ -46,9 +43,9 @@ async function init() {
             labelContainer.appendChild(document.createElement("div"));
         }
 
-    } catch (err) {
-        alert("❌ เปิดกล้องไม่ได้: " + err);
-        console.error(err);
+    } catch (error) {
+        alert("❌ เปิดกล้องไม่ได้: " + error.message);
+        console.log(error);
     }
 }
 
@@ -62,10 +59,8 @@ async function predict() {
     const prediction = await model.predict(webcam.canvas);
 
     for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-
-        labelContainer.childNodes[i].innerHTML = classPrediction;
+        const result = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+        labelContainer.childNodes[i].innerHTML = result;
     }
 }
 </script>
